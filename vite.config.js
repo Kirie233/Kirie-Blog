@@ -10,6 +10,7 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  base: '/Kirie-Blog/', // GitHub Pages部署路径
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
