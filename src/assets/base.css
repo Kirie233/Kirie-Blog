@@ -1,0 +1,9 @@
+/* 基础变量 */
+:root {
+  --primary-color: #ff9db5;
+  --secondary-color: #2c3e50;
+  --text-color: #ffffff;
+  --background-color: #121212;
+  --card-background: #1e1e1e;
+  --border-color: rgba(255, 255, 255, 0.1);
+}
