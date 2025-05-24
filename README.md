@@ -38,7 +38,14 @@ GitHub Pages部署地址：`https://kirie233.github.io/Kirie-Blog/`
 3. 将dist目录内容推送到gh-pages分支
 4. GitHub Pages自动部署更新
 
+## 🔧 修复说明
+
+**v1.0.1 更新** (2024年12月):
+- ✅ 修复了资源路径问题
+- ✅ 添加了正确的base路径配置 `/Kirie-Blog/`
+- ✅ 所有CSS和JS文件现在可以正确加载
+
 ---
 
 **最后更新**: 2024年12月
-**构建版本**: v1.0.0
+**构建版本**: v1.0.1
