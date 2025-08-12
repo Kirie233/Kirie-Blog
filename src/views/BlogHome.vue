@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { usePageTitle } from '@/composables/usePageTitle'
 import WelcomeBanner from '@/components/WelcomeBanner.vue'
+import blogService from '@/services/blogService.js'
 
 // 设置页面标题
 usePageTitle('首页')
@@ -16,61 +17,16 @@ const latestPosts = computed(() => {
   return [...posts.value].sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 
-onMounted(() => {
-  // 这里之后会替换为API调用
-  setTimeout(() => {
-    posts.value = [
-      {
-        id: 1,
-        title: '我的第一篇博客',
-        summary: '这是我的第一篇博客文章，介绍了Vue.js的基础知识和使用方法。Vue.js是一个非常棒的前端框架，它使得构建交互式用户界面变得简单而有趣。',
-        date: '2023-10-15',
-        category: '前端开发',
-        tags: ['Vue', '前端', '入门']
-      },
-      {
-        id: 2,
-        title: 'Vue 3学习笔记',
-        summary: 'Vue 3的Composition API使用体验非常好。相比于Vue 2的Options API，Composition API提供了更好的代码组织方式，使得代码更加清晰、易于维护。',
-        date: '2023-10-20',
-        category: '前端开发',
-        tags: ['Vue', '学习笔记']
-      },
-      {
-        id: 3,
-        title: '如何构建个人博客',
-        summary: '使用Vue 3和Vite构建个人博客是一个很好的学习项目。通过这个项目，你可以学习到Vue 3的各种特性，以及如何使用Vite进行项目构建。',
-        date: '2023-11-05',
-        category: '项目实战',
-        tags: ['Vue', '博客', '项目实战']
-      },
-      {
-        id: 4,
-        title: '前端开发技巧',
-        summary: '在前端开发中，有很多小技巧可以帮助我们提高开发效率。例如，使用ESLint和Prettier可以帮助我们保持代码风格的一致性。',
-        date: '2023-11-15',
-        category: '开发技巧',
-        tags: ['前端', '开发技巧']
-      },
-      {
-        id: 5,
-        title: 'JavaScript异步编程',
-        summary: '异步编程是JavaScript中的重要概念，本文介绍了Promise、async/await等异步编程方式。',
-        date: '2023-12-01',
-        category: '前端开发',
-        tags: ['JavaScript', '异步编程']
-      },
-      {
-        id: 6,
-        title: 'CSS布局技巧',
-        summary: '本文介绍了一些常用的CSS布局技巧，包括Flexbox和Grid布局。',
-        date: '2023-12-15',
-        category: '前端开发',
-        tags: ['CSS', '布局']
-      }
-    ]
+onMounted(async () => {
+  // 从博客服务加载文章
+  try {
+    const result = await blogService.getPostsPaginated(1, 6)
+    posts.value = result.posts
+  } catch (error) {
+    console.error('加载文章失败:', error)
+  } finally {
     loading.value = false
-  }, 500)
+  }
 })
 </script>
 

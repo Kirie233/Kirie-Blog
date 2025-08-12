@@ -1,0 +1,34 @@
+{
+  "posts": [
+    {
+      "id": "welcome-to-kirie-blog",
+      "filename": "welcome-to-kirie-blog.md",
+      "slug": "2024-01-29--kirie-blog",
+      "title": "欢迎使用 Kirie Blog",
+      "date": "2024-01-29",
+      "category": "系统介绍",
+      "tags": [
+        "Vue",
+        "博客",
+        "介绍"
+      ],
+      "summary": "欢迎使用 Kirie Blog！这是一个基于 Vue 3 + Vite 构建的现代化个人博客系统，采用 Git-based 工作流管理内容。",
+      "author": "Kirie",
+      "draft": false,
+      "wordCount": 766,
+      "readingTime": 4
+    }
+  ],
+  "stats": {
+    "totalPosts": 1,
+    "categories": {
+      "系统介绍": 1
+    },
+    "tags": {
+      "Vue": 1,
+      "博客": 1,
+      "介绍": 1
+    }
+  },
+  "generated": "2025-07-29T15:28:00.595Z"
+}

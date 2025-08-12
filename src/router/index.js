@@ -31,6 +31,12 @@ const router = createRouter({
       props: true
     },
     {
+      path: '/posts/:slug',
+      name: 'post-slug',
+      component: () => import('../views/BlogPost.vue'),
+      props: route => ({ id: route.params.slug })
+    },
+    {
       path: '/category/:category',
       name: 'category',
       component: () => import('../views/CategoryView.vue'),
@@ -53,6 +59,7 @@ const router = createRouter({
       name: 'profile-test',
       component: () => import('../views/ProfileTest.vue')
     },
+
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',

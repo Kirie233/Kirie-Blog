@@ -6,9 +6,9 @@ export function usePageTitle(title) {
   
   const updateTitle = (newTitle) => {
     if (newTitle) {
-      document.title = `${newTitle} - 盒子萌的个人博客`
+      document.title = `${newTitle} - Kirie的个人博客`
     } else {
-      document.title = '盒子萌的个人博客'
+      document.title = 'Kirie的个人博客'
     }
   }
   

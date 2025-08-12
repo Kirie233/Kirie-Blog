@@ -1,37 +1,10 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
+import blogService from '@/services/blogService.js'
 
 // 留言数据
-const messages = ref([
-  {
-    id: 1,
-    name: '张三',
-    email: 'zhangsan@example.com',
-    website: 'https://zhangsan.com',
-    content: '很棒的博客！内容很有深度，学到了很多东西。',
-    time: '2024-01-15 14:30:00',
-    avatar: 'https://via.placeholder.com/50'
-  },
-  {
-    id: 2,
-    name: '李四',
-    email: 'lisi@example.com',
-    website: '',
-    content: '感谢分享这些技术文章，对我的工作很有帮助。期待更多更新！',
-    time: '2024-01-14 09:15:00',
-    avatar: 'https://via.placeholder.com/50'
-  },
-  {
-    id: 3,
-    name: '王五',
-    email: 'wangwu@example.com',
-    website: 'https://wangwu.blog',
-    content: '界面设计很漂亮，用户体验也很好。继续加油！',
-    time: '2024-01-13 16:45:00',
-    avatar: 'https://via.placeholder.com/50'
-  }
-])
+const messages = ref([])
 
 // 表单数据
 const form = reactive({
@@ -48,8 +21,18 @@ const errors = reactive({
   content: ''
 })
 
+// 加载留言数据
+onMounted(async () => {
+  try {
+    const result = await blogService.getMessagesPaginated(1, 50) // 获取前50条留言
+    messages.value = result.messages
+  } catch (error) {
+    console.error('加载留言失败:', error)
+  }
+})
+
 // 提交留言
-const submitMessage = () => {
+const submitMessage = async () => {
   // 重置错误信息
   Object.keys(errors).forEach(key => {
     errors[key] = ''
@@ -78,25 +61,28 @@ const submitMessage = () => {
 
   if (!isValid) return
 
-  // 添加新留言
-  const newMessage = {
-    id: Date.now(),
-    name: form.name,
-    email: form.email,
-    website: form.website,
-    content: form.content,
-    time: new Date().toLocaleString('zh-CN'),
-    avatar: 'https://via.placeholder.com/50'
+  try {
+    // 使用博客服务添加新留言
+    const newMessage = await blogService.addMessage({
+      name: form.name,
+      email: form.email,
+      website: form.website,
+      content: form.content
+    })
+
+    // 更新本地留言列表
+    messages.value.unshift(newMessage)
+
+    // 重置表单
+    Object.keys(form).forEach(key => {
+      form[key] = ''
+    })
+
+    alert('留言提交成功！')
+  } catch (error) {
+    console.error('留言提交失败:', error)
+    alert('留言提交失败，请重试')
   }
-
-  messages.value.unshift(newMessage)
-
-  // 重置表单
-  Object.keys(form).forEach(key => {
-    form[key] = ''
-  })
-
-  alert('留言提交成功！')
 }
 </script>
 

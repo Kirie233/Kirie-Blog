@@ -1,0 +1,59 @@
+{
+  "blog": {
+    "title": "Kirie Blog",
+    "subtitle": "基于 Git 工作流的现代博客",
+    "description": "一个安全、优雅的个人博客系统",
+    "author": "Kirie",
+    "email": "",
+    "avatar": "/src/assets/avatar.jpg",
+    "url": "https://your-username.github.io/your-repo",
+    "language": "zh-CN",
+    "timezone": "Asia/Shanghai"
+  },
+  "social": {
+    "github": "https://github.com/your-username",
+    "twitter": "",
+    "email": "",
+    "linkedin": "",
+    "rss": "/rss.xml"
+  },
+  "features": {
+    "comments": false,
+    "analytics": false,
+    "search": true,
+    "rss": true,
+    "sitemap": true
+  },
+  "build": {
+    "postsPerPage": 10,
+    "excerptLength": 200,
+    "dateFormat": "YYYY-MM-DD",
+    "enableDrafts": false
+  },
+  "categories": [
+    "前端开发",
+    "后端开发",
+    "项目实战",
+    "开发技巧",
+    "学习笔记",
+    "生活随笔",
+    "系统介绍"
+  ],
+  "tags": [
+    "Vue",
+    "JavaScript",
+    "CSS",
+    "HTML",
+    "Node.js",
+    "React",
+    "TypeScript",
+    "前端",
+    "后端",
+    "全栈",
+    "学习笔记",
+    "项目实战",
+    "开发技巧",
+    "博客",
+    "介绍"
+  ]
+}
