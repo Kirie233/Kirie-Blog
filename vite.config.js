@@ -10,7 +10,7 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
-  base: '/', 
+  base: '/', // Vercel 部署路径
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
