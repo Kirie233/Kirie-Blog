@@ -2,6 +2,8 @@
 import { Icon } from '@iconify/vue'
 import { onMounted, ref } from 'vue'
 import avatarImage from '@/assets/avatar.jpg'
+import qqQrImage from '@/assets/qq-qrcode.png'
+import wxQrImage from '@/assets/wx-qrcode.png'
 
 // 性能优化：控制动画状态
 const isAnimationComplete = ref(false)
@@ -48,14 +50,14 @@ const socialLinks = [
     name: '微信',
     icon: 'mdi:wechat',
     href: '#',
-    qr: 'https://via.placeholder.com/150',
+    qr: wxQrImage,
     color: 'bg-green-500 hover:bg-green-600'
   },
   {
     name: 'QQ',
     icon: 'mdi:qqchat',
     href: '#',
-    qr: 'https://via.placeholder.com/150',
+    qr: qqQrImage,
     color: 'bg-blue-500 hover:bg-blue-600'
   },
   {
