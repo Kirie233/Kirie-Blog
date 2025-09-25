@@ -1,3 +1,10 @@
+---
+title: "在Openwrt中配置Wireguard实现全局回家"
+date: "2025-09-25"
+category: "网络技术"
+tags: ["Openwrt", "Wireguard", "VPN", "网络配置"]
+---
+
 # 在Openwrt中配置Wireguard实现全局回家
 ## 前提条件
 - **已刷好Openwrt固件的路由器**

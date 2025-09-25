@@ -138,45 +138,55 @@ function scanPosts() {
     return []
   }
 
-  const files = fs.readdirSync(POSTS_DIR)
   const posts = []
 
-  for (const filename of files) {
-    if (!filename.endsWith('.md')) continue
+  function scanDirectory(directory) {
+    const items = fs.readdirSync(directory)
 
-    const filePath = path.join(POSTS_DIR, filename)
-    const content = fs.readFileSync(filePath, 'utf8')
-    const { frontmatter, content: markdownContent } = parseFrontmatter(content)
+    for (const item of items) {
+      const fullPath = path.join(directory, item)
+      const stat = fs.statSync(fullPath)
 
-    // 验证必需字段
-    if (!frontmatter.title || !frontmatter.date || !frontmatter.category) {
-      console.warn(`文章 ${filename} 缺少必需字段，跳过`)
-      continue
+      if (stat.isDirectory()) {
+        scanDirectory(fullPath)
+      } else if (item.endsWith('.md')) {
+        const relativePath = path.relative(POSTS_DIR, fullPath)
+        const filename = relativePath.replace(/\\/g, '/') // 统一路径分隔符
+        const content = fs.readFileSync(fullPath, 'utf8')
+        const { frontmatter, content: markdownContent } = parseFrontmatter(content)
+
+        if (!frontmatter.title || !frontmatter.date || !frontmatter.category) {
+          console.warn(`文章 ${filename} 缺少必需字段，跳过`)
+          continue
+        }
+
+        if (process.env.NODE_ENV === 'production' && frontmatter.draft) {
+          console.log(`跳过草稿: ${filename}`)
+          continue
+        }
+        
+        const id = filename.replace(/\.md$/, '').replace(/[^a-zA-Z0-9/]/g, '-')
+        
+        const post = {
+          id,
+          filename,
+          slug: id, // 使用 id 作为 slug，因为它已经包含了路径信息
+          title: frontmatter.title,
+          date: frontmatter.date,
+          category: frontmatter.category,
+          tags: frontmatter.tags || [],
+          summary: frontmatter.summary || generateExcerpt(markdownContent),
+          author: frontmatter.author || 'Kirie',
+          draft: frontmatter.draft || false,
+          wordCount: countWords(markdownContent),
+          readingTime: calculateReadingTime(markdownContent)
+        }
+        posts.push(post)
+      }
     }
-
-    // 过滤草稿（生产环境）
-    if (process.env.NODE_ENV === 'production' && frontmatter.draft) {
-      console.log(`跳过草稿: ${filename}`)
-      continue
-    }
-
-    const post = {
-      id: filename.replace(/\.md$/, '').replace(/[^a-zA-Z0-9]/g, '-'),
-      filename,
-      slug: generateSlug(frontmatter.title, frontmatter.date),
-      title: frontmatter.title,
-      date: frontmatter.date,
-      category: frontmatter.category,
-      tags: frontmatter.tags || [],
-      summary: frontmatter.summary || generateExcerpt(markdownContent),
-      author: frontmatter.author || 'Kirie',
-      draft: frontmatter.draft || false,
-      wordCount: countWords(markdownContent),
-      readingTime: calculateReadingTime(markdownContent)
-    }
-
-    posts.push(post)
   }
+
+  scanDirectory(POSTS_DIR)
 
   // 按日期排序
   return posts.sort((a, b) => new Date(b.date) - new Date(a.date))

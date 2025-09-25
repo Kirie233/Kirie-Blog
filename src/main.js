@@ -3,11 +3,14 @@ import App from './App.vue'
 import router from './router'
 import { MotionPlugin } from '@vueuse/motion'
 import Toast from 'vue-toastification'
+import { Buffer } from 'buffer';
+window.Buffer = Buffer;
 
 // 引入CSS
 import './assets/base.css'
 import './assets/main.css'
 import 'vue-toastification/dist/index.css'
+import 'highlight.js/styles/atom-one-dark.css'
 
 const app = createApp(App)
 

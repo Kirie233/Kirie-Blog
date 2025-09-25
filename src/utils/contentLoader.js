@@ -3,27 +3,28 @@
  * 用于加载和管理 Markdown 文件内容
  */
 
-import markdownParser from './markdownParser.js'
+// 1. 修正导入语句：只保留需要的 `import * as`
+import * as markdownParser from '/src/utils/markdownParser.js';
 
 class ContentLoader {
   constructor() {
-    this.posts = []
-    this.config = {}
-    this.loaded = false
+    this.posts = [];
+    this.config = {};
+    this.loaded = false;
   }
 
   /**
    * 初始化内容加载器
    */
   async init() {
-    if (this.loaded) return
+    if (this.loaded) return;
 
     try {
-      await this.loadConfig()
-      await this.loadPosts()
-      this.loaded = true
+      await this.loadConfig();
+      await this.loadPosts();
+      this.loaded = true;
     } catch (error) {
-      console.error('内容加载失败:', error)
+      console.error('内容加载失败:', error);
     }
   }
 
@@ -32,16 +33,16 @@ class ContentLoader {
    */
   async loadConfig() {
     try {
-      const response = await fetch('/content/config/blog.json')
+      const response = await fetch('/content/config/blog.json');
       if (response.ok) {
-        this.config = await response.json()
+        this.config = await response.json();
       } else {
-        console.warn('配置文件加载失败，使用默认配置')
-        this.config = this.getDefaultConfig()
+        console.warn('配置文件加载失败，使用默认配置');
+        this.config = this.getDefaultConfig();
       }
     } catch (error) {
-      console.warn('配置文件加载失败，使用默认配置:', error)
-      this.config = this.getDefaultConfig()
+      console.warn('配置文件加载失败，使用默认配置:', error);
+      this.config = this.getDefaultConfig();
     }
   }
 
@@ -51,39 +52,42 @@ class ContentLoader {
   async loadPosts() {
     try {
       // 首先尝试加载构建时生成的内容索引
-      const indexResponse = await fetch('/content-index.json')
+      const indexResponse = await fetch('/content-index.json');
       if (indexResponse.ok) {
-        const index = await indexResponse.json()
+        const index = await indexResponse.json();
         this.posts = index.posts.map(post => ({
           ...post,
           views: this.getViewCount(post.filename)
-        }))
-        return
+        }));
+        return;
       }
     } catch (error) {
-      console.warn('内容索引加载失败，尝试直接加载文章:', error)
+      console.warn('内容索引加载失败，尝试直接加载文章:', error);
     }
 
     // 回退到直接加载文章文件
     try {
+      // 注意：这里硬编码了文件名，之后可以改为动态读取目录
       const postFiles = [
-        'welcome-to-kirie-blog.md'
-      ]
+        'welcome-to-kirie-blog.md',
+        '七日杀教程/教程.md' // 添加你的新文章
+      ];
 
-      const posts = []
+      const posts = [];
 
       for (const filename of postFiles) {
         try {
-          const response = await fetch(`/content/posts/${filename}`)
+          const response = await fetch(`/content/posts/${filename}`);
           if (response.ok) {
-            const content = await response.text()
-            const parsed = markdownParser.parse(content)
+            const content = await response.text();
+            // 使用我们强大的解析器
+            const parsed = markdownParser.parse(content);
 
             // 验证 frontmatter
-            const validation = markdownParser.validateFrontmatter(parsed.frontmatter)
+            const validation = markdownParser.validateFrontmatter(parsed.frontmatter);
             if (!validation.isValid) {
-              console.warn(`文章 ${filename} frontmatter 验证失败:`, validation.errors)
-              continue
+              console.warn(`文章 ${filename} frontmatter 验证失败:`, validation.errors);
+              continue; // 跳过此文章
             }
 
             const post = {
@@ -91,31 +95,32 @@ class ContentLoader {
               filename,
               slug: markdownParser.generateSlug(parsed.frontmatter.title, parsed.frontmatter.date),
               ...parsed.frontmatter,
-              content: parsed.content,
+              // 2. 修正内容填充：这里应该保存渲染后的 HTML
+              content: parsed.html,
               excerpt: parsed.excerpt,
               wordCount: parsed.wordCount,
               readingTime: parsed.readingTime,
               views: this.getViewCount(filename)
-            }
+            };
 
             // 过滤草稿（生产环境）
             if (import.meta.env.PROD && post.draft) {
-              continue
+              continue;
             }
 
-            posts.push(post)
+            posts.push(post);
           }
         } catch (error) {
-          console.error(`加载文章 ${filename} 失败:`, error)
+          console.error(`加载文章 ${filename} 失败:`, error);
         }
       }
 
       // 按日期排序
-      this.posts = posts.sort((a, b) => new Date(b.date) - new Date(a.date))
+      this.posts = posts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     } catch (error) {
-      console.error('文章加载失败:', error)
-      this.posts = []
+      console.error('文章加载失败:', error);
+      this.posts = [];
     }
   }
 
@@ -132,31 +137,31 @@ class ContentLoader {
       },
       categories: ["前端开发", "后端开发", "项目实战", "开发技巧", "学习笔记", "生活随笔"],
       tags: ["Vue", "JavaScript", "CSS", "HTML", "前端", "后端", "学习笔记"]
-    }
+    };
   }
 
   /**
    * 生成文章ID
    */
   generateId(filename) {
-    return filename.replace(/\.md$/, '').replace(/[^a-zA-Z0-9]/g, '-')
+    return filename.replace(/\.md$/, '').replace(/[^a-zA-Z0-9]/g, '-');
   }
 
   /**
    * 获取浏览量
    */
   getViewCount(filename) {
-    const views = JSON.parse(localStorage.getItem('blog_post_views') || '{}')
-    return views[filename] || 0
+    const views = JSON.parse(localStorage.getItem('blog_post_views') || '{}');
+    return views[filename] || 0;
   }
 
   /**
    * 增加浏览量
    */
   incrementViewCount(filename) {
-    const views = JSON.parse(localStorage.getItem('blog_post_views') || '{}')
-    views[filename] = (views[filename] || 0) + 1
-    localStorage.setItem('blog_post_views', JSON.stringify(views))
+    const views = JSON.parse(localStorage.getItem('blog_post_views') || '{}');
+    views[filename] = (views[filename] || 0) + 1;
+    localStorage.setItem('blog_post_views', JSON.stringify(views));
   }
 
   // ========== 公共 API ==========
@@ -165,39 +170,49 @@ class ContentLoader {
    * 获取所有文章
    */
   async getAllPosts() {
-    await this.init()
-    return [...this.posts]
+    await this.init();
+    return [...this.posts];
   }
 
-  /**
-   * 根据ID获取文章
-   */
-  async getPostById(id) {
-    await this.init()
-    const post = this.posts.find(p => p.id === id || p.slug === id)
-    if (post) {
-      // 如果文章没有完整内容，需要加载
-      if (!post.content) {
-        try {
-          const response = await fetch(`/content/posts/${post.filename}`)
-          if (response.ok) {
-            const content = await response.text()
-            const parsed = markdownParser.parse(content)
-            post.content = parsed.content
-          }
-        } catch (error) {
-          console.error(`加载文章内容失败: ${post.filename}`, error)
+/**
+ * 根据ID获取文章
+ */
+async getPostById(id) {
+  await this.init(); // 确保文章列表已加载
+  const post = this.posts.find(p => p.id === id || p.slug === id);
+
+  if (post) {
+    // **关键逻辑：检查 post 对象是否包含正文内容**
+    // `content-index.json` 中的对象通常不包含 content
+    if (post.content === undefined || post.content === null || post.content === '') {
+      try {
+        console.log(`正在为文章 ${post.filename} 按需加载正文...`);
+        const response = await fetch(`/content/posts/${encodeURI(post.filename)}`);
+        if (response.ok) {
+          const rawContent = await response.text();
+          const parsed = markdownParser.parse(rawContent);
+          
+          // 将解析后的 HTML 正文填充到 post 对象中
+          post.content = parsed.html;
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+      } catch (error) {
+        console.error(`加载文章内容失败: ${post.filename}`, error);
+        post.content = '<p>文章正文加载失败，请稍后重试。</p>'; // 提供错误提示
       }
-
-      // 增加浏览量
-      this.incrementViewCount(post.filename)
-      return { ...post, views: this.getViewCount(post.filename) }
     }
-    return null
-  }
 
-  /**
+    // 增加浏览量
+    this.incrementViewCount(post.filename);
+    return { ...post, views: this.getViewCount(post.filename) };
+  }
+  
+  return null; // 如果未找到文章，返回 null
+}
+
+  // ... [其他公共 API 函数保持不变] ...
+    /**
    * 根据分类获取文章
    */
   async getPostsByCategory(category) {
@@ -222,7 +237,7 @@ class ContentLoader {
     return this.posts.filter(post => 
       post.title.toLowerCase().includes(searchTerm) ||
       post.excerpt.toLowerCase().includes(searchTerm) ||
-      post.content.toLowerCase().includes(searchTerm) ||
+      (post.content && post.content.toLowerCase().includes(searchTerm)) || // 检查 content 是否存在
       (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
     )
   }
@@ -247,7 +262,7 @@ class ContentLoader {
       filteredPosts = filteredPosts.filter(post => 
         post.title.toLowerCase().includes(searchTerm) ||
         post.excerpt.toLowerCase().includes(searchTerm) ||
-        post.content.toLowerCase().includes(searchTerm) ||
+        (post.content && post.content.toLowerCase().includes(searchTerm)) || // 检查 content 是否存在
         (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
       )
     }
@@ -379,7 +394,8 @@ class ContentLoader {
   }
 }
 
-// 创建单例实例
-const contentLoader = new ContentLoader()
 
-export default contentLoader
+// 创建单例实例
+const contentLoader = new ContentLoader();
+
+export default contentLoader;

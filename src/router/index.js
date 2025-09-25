@@ -25,16 +25,10 @@ const router = createRouter({
       component: () => import('../views/ArchiveView.vue'),
     },
     {
-      path: '/post/:id',
+      path: '/post/:id(.+)', // 使用正则表达式匹配所有字符，包括斜杠
       name: 'post',
       component: () => import('../views/BlogPost.vue'),
       props: true
-    },
-    {
-      path: '/posts/:slug',
-      name: 'post-slug',
-      component: () => import('../views/BlogPost.vue'),
-      props: route => ({ id: route.params.slug })
     },
     {
       path: '/category/:category',

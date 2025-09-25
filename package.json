@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node scripts/generate-content-index.js && vite build",
+    "dev": "node scripts/build-index.js && vite",
+    "build": "node scripts/build-index.js && vite build",
     "preview": "vite preview",
     "content": "node scripts/content-manager.js",
     "generate-index": "node scripts/generate-content-index.js"
@@ -14,7 +14,10 @@
     "@iconify/vue": "^5.0.0",
     "@vueuse/core": "^13.6.0",
     "@vueuse/motion": "^3.0.3",
+    "buffer": "^6.0.3",
     "dayjs": "^1.11.13",
+    "highlight.js": "^11.11.1",
+    "marked": "^16.3.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
     "vue-toastification": "^2.0.0-rc.5"
@@ -22,6 +25,8 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
     "autoprefixer": "^10.4.21",
+    "glob": "^11.0.3",
+    "gray-matter": "^4.0.3",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.3.5",
     "vite": "^6.2.4",

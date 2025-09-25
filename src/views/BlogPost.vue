@@ -1,88 +1,75 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Icon } from '@iconify/vue'
-import blogService from '@/services/blogService.js'
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { Icon } from '@iconify/vue';
+import blogService from '@/services/blogService.js';
 
-const route = useRoute()
-const router = useRouter()
-const post = ref(null)
-const loading = ref(true)
-const tableOfContents = ref([])
-const relatedPosts = ref([])
+const route = useRoute();
+const router = useRouter();
+const post = ref(null);
+const loading = ref(true);
+const tableOfContents = ref([]);
+const relatedPosts = ref([]);
 
-// 生成文章目录
-const generateTableOfContents = (content) => {
-  const headings = []
-  const lines = content.split('\n')
+/**
+ * 从渲染后的 HTML 内容中提取标题来生成目录
+ * @param {string} htmlContent - 文章的 HTML 内容
+ * @returns {object} - 包含目录和更新后HTML的对象
+ */
+const generateTableOfContentsFromHtml = (htmlContent) => {
+  if (!htmlContent) return { toc: [], contentWithIds: '' };
 
-  lines.forEach(line => {
-    if (line.startsWith('#')) {
-      const level = line.match(/^#+/)[0].length
-      const text = line.replace(/^#+\s+/, '')
-      const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
+  const headings = [];
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
 
-      headings.push({
-        level,
-        text,
-        id
-      })
-    }
-  })
+  tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+    const level = parseInt(heading.tagName.substring(1), 10);
+    const text = heading.innerText;
+    
+    const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    heading.id = id;
 
-  return headings
-}
-
-// 相关文章现在在 blogService 中处理
-
-// 格式化Markdown内容为HTML
-const formatContent = (content) => {
-  if (!content) return ''
-
-  // 简单的Markdown解析
-  let html = content
-    // 代码块
-    .replace(/```([^`]+)```/g, '<pre class="code-block">$1</pre>')
-    // 标题
-    .replace(/^# (.+)$/gm, '<h1 id="$1">$1</h1>')
-    .replace(/^## (.+)$/gm, '<h2 id="$1">$1</h2>')
-    .replace(/^### (.+)$/gm, '<h3 id="$1">$1</h3>')
-    .replace(/^#### (.+)$/gm, '<h4 id="$1">$1</h4>')
-    // 段落
-    .replace(/^(?!<h|<pre|<ul|<ol|<li)(.+)$/gm, '<p>$1</p>')
-    // 换行符
-    .replace(/\n\n/g, '')
-
-  return html
-}
-
-// 格式化后的文章内容
-const formattedContent = computed(() => {
-  return post.value ? formatContent(post.value.content) : ''
-})
+    headings.push({
+      level,
+      text,
+      id
+    });
+  });
+  
+  return {
+    toc: headings,
+    contentWithIds: tempDiv.innerHTML 
+  };
+};
 
 onMounted(async () => {
-  // 从博客服务获取文章详情
-  setTimeout(async () => {
-    const id = route.params.id // 支持 ID 或 slug
-    const result = await blogService.getPostById(id)
+  loading.value = true;
+  try {
+    const id = route.params.id;
+    const result = await blogService.getPostById(id);
 
     if (!result) {
-      router.push('/')
-      return
+      post.value = null;
+      return;
     }
 
-    post.value = result
+    const { toc, contentWithIds } = generateTableOfContentsFromHtml(result.content);
+    
+    result.content = contentWithIds;
 
-    // 生成文章目录
-    tableOfContents.value = generateTableOfContents(result.content)
+    post.value = result;
+    tableOfContents.value = toc;
 
-    // 相关文章已在服务中获取
-    relatedPosts.value = result.relatedPosts || []
+    relatedPosts.value = result.relatedPosts || [];
 
-    loading.value = false
-  }, 500)
-})
+  } catch (error) {
+    console.error("加载文章详情时出错:", error);
+    post.value = null;
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
@@ -127,7 +114,10 @@ onMounted(async () => {
                 {{ post.views }} 阅读
               </span>
             </div>
-            <div class="post-tags">
+            
+            <!-- ▼▼▼ 关键修改点 2 ▼▼▼ -->
+            <!-- 添加 v-if 判断，确保 post.tags 是一个有效的数组 -->
+            <div v-if="post.tags && post.tags.length > 0" class="post-tags">
               <Icon icon="mdi:tag-multiple" class="meta-icon" />
               <RouterLink
                 v-for="tag in post.tags"
@@ -138,10 +128,13 @@ onMounted(async () => {
                 {{ tag }}
               </RouterLink>
             </div>
+
           </div>
         </header>
 
-        <div class="post-body" v-html="formattedContent"></div>
+        <!-- ▼▼▼ 关键修改点 1 ▼▼▼ -->
+        <!-- 确保 v-html 绑定到正确的变量 post.content -->
+        <div class="post-body" v-html="post.content"></div>
 
         <footer class="post-footer">
           <div class="post-navigation">
@@ -178,13 +171,13 @@ onMounted(async () => {
       </h2>
       <div class="related-list">
         <div v-for="relatedPost in relatedPosts" :key="relatedPost.id" class="related-item">
-          <RouterLink :to="`/post/${relatedPost.id}`" class="related-link">
+          <RouterLink :to="`/post/${relatedPost.slug || relatedPost.id}`" class="related-link">
             <h3 class="related-post-title">{{ relatedPost.title }}</h3>
             <div class="related-post-meta">
               <span class="related-post-date">{{ relatedPost.date }}</span>
               <span class="related-post-views">{{ relatedPost.views }} 阅读</span>
             </div>
-            <p class="related-post-summary">{{ relatedPost.summary || relatedPost.content.substring(0, 100) + '...' }}</p>
+            <p class="related-post-summary">{{ relatedPost.excerpt || (relatedPost.content && relatedPost.content.substring(0, 100) + '...') }}</p>
           </RouterLink>
         </div>
       </div>
@@ -199,7 +192,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* 动画样式 */
+/* 你的样式代码无需修改，保持原样即可 */
+/* ... */
 .fade-in {
   animation: fadeIn 0.6s ease-out;
 }
@@ -432,37 +426,41 @@ h1 {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.post-body h1, .post-body h2, .post-body h3, .post-body h4 {
+.post-body :deep(h1),
+.post-body :deep(h2),
+.post-body :deep(h3),
+.post-body :deep(h4) {
   margin-top: 2rem;
   margin-bottom: 1rem;
   color: #fff;
 }
 
-.post-body h1 {
+.post-body :deep(h1) {
   font-size: 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 0.5rem;
 }
 
-.post-body h2 {
+.post-body :deep(h2) {
   font-size: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 0.3rem;
 }
 
-.post-body h3 {
+.post-body :deep(h3) {
   font-size: 1.3rem;
 }
 
-.post-body h4 {
+.post-body :deep(h4) {
   font-size: 1.1rem;
 }
 
-.post-body p {
+.post-body :deep(p) {
   margin-bottom: 1.5rem;
 }
 
-.post-body .code-block {
+.post-body :deep(pre),
+.post-body :deep(.code-block) {
   background-color: rgba(0, 0, 0, 0.3);
   padding: 1rem;
   border-radius: 6px;
@@ -665,16 +663,17 @@ h1 {
     font-size: 1.8rem;
   }
 
-  .post-body h1 {
+  .post-body :deep(h1) {
     font-size: 1.8rem;
   }
 
-  .post-body h2 {
+  .post-body :deep(h2) {
     font-size: 1.4rem;
   }
 
-  .post-body h3 {
+  .post-body :deep(h3) {
     font-size: 1.2rem;
   }
 }
+
 </style>
