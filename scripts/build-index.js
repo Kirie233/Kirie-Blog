@@ -25,8 +25,7 @@ async function buildContentIndex() {
 
   // 计算出 public 和 posts 目录的绝对路径
   const publicDir = path.resolve(__dirname, '..', 'public');
-  const postsDir = path.resolve(__dirname, '..', 'content', 'posts');
-  // ▲▲▲ 修改结束 ▲▲▲
+  const postsDir = path.resolve(publicDir, 'content', 'posts'); 
 
   console.log(`[Index Builder] Scanning for posts in: ${postsDir}`);
 
@@ -72,7 +71,7 @@ async function buildContentIndex() {
     generatedAt: new Date().toISOString()
   };
 
-  fs.writeFileSync(path.join(publicDir, 'content-index.json'), JSON.stringify(index, null, 2));
+  fs.writeFileSync(path.join(publicDir, 'content', 'posts.json'), JSON.stringify(index, null, 2));
 
   console.log(`✅ Content index generated successfully with ${posts.length} posts.`);
 }
