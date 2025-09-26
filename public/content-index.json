@@ -1,7 +1,7 @@
 {
   "posts": [
     {
-      "id": "七日杀-教程",
+      "id": "7dtd-tutorial",
       "filename": "七日杀教程/七日杀进服教程.md",
       "slug": "2025/09/25/mod---",
       "title": "七日杀：塔科夫Mod - 服务器连接傻瓜式教程",
@@ -16,7 +16,7 @@
       "draft": false
     },
     {
-      "id": "wireguard-教程",
+      "id": "wireguard-tutorial",
       "filename": "完整配置wireguard回家的教程/完整配置wireguard回家的教程.md",
       "slug": "2025/09/25/openwrtwireguard",
       "title": "在Openwrt中配置Wireguard实现全局回家",
