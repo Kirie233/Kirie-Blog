@@ -7,8 +7,24 @@ import { glob } from 'glob';
 import matter from 'gray-matter';
 
 // -- Helper Functions (保持不变) --
+/**
+ * 生成文章ID (支持中文等Unicode字符)
+ * @param {string} filename 
+ * @returns {string}
+ */
 function generateId(filename) {
-  return filename.replace(/\.md$/, '').replace(/[^a-zA-Z0-9]/g, '-');
+  // 移除 .md 后缀
+  const withoutExt = filename.replace(/\.md$/, '');
+  
+  // 使用 Unicode 属性转义 (\p{L} \p{N}) 来匹配任何语言的字母和数字
+  // `u` 标志是必须的
+  // 这会保留中文、英文、数字，并将其他所有内容（如 /、空格）替换为 -
+  const replaced = withoutExt.replace(/[^\p{L}\p{N}-]/gu, '-');
+  
+  // (推荐) 清理多余的连字符，例如 -- 变成 -，并移除开头和结尾的 -
+  return replaced
+    .replace(/--+/g, '-') // 合并连续的连字符
+    .replace(/^-+|-+$/g, ''); // 移除开头和结尾的连字符
 }
 
 function generateSlug(title, date) {
@@ -71,7 +87,7 @@ async function buildContentIndex() {
     generatedAt: new Date().toISOString()
   };
 
-  fs.writeFileSync(path.join(publicDir, 'content', 'posts.json'), JSON.stringify(index, null, 2));
+  fs.writeFileSync(path.join(publicDir,'content-index.json'), JSON.stringify(index, null, 2));
 
   console.log(`✅ Content index generated successfully with ${posts.length} posts.`);
 }
